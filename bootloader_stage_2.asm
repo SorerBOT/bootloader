@@ -1,7 +1,7 @@
 [BITS 16]
 [ORG 0x7E00]
 
-%define CLRF 0x0D, 0x0A
+%define CRLF 0x0D, 0x0A
 %define OS_STATUS "[sOS]"
 %define GDT_BASE_ADDRESS
 %define GDT_SEGMENT_DATA_SELECTOR 0x08
@@ -66,7 +66,7 @@ GDT_HEADER:
     dw GDT_END - GDT_START - 1  ; limit: the maximum offset allowed within the GDT
     dd GDT_START                ; base: the base address of the GDT
 
-msg_stage_2 db OS_STATUS, ": booting...", CLRF, OS_STATUS, ": stage 1 completed...", CLRF, OS_STATUS, ": running stage 2...", 0
+msg_stage_2 db OS_STATUS, ": booting...", CRLF, OS_STATUS, ": stage 1 completed...", CRLF, OS_STATUS, ": running stage 2...", 0
 
 
 [BITS 32]
