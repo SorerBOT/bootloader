@@ -16,11 +16,11 @@ start:
 
 main:
 ; We need to zero some segment base pointers. We mostly want to avoid segmentation, and work with physical addresses
+    cli                 ; disable interrupts for bootloader
     xor ax, ax
 
 ; defining the stack to be before stage 1 code.
 ; since it grows backwards, we can set it to 0x7C00
-    cli                 ; disable interrupts temporarily
     mov ss, ax
     mov sp, 0x7C00
     mov bp, 0x7C00
@@ -30,7 +30,6 @@ main:
     mov es, ax
     mov gs, ax
 
-    sti                 ; re-enable interrupts
 ; Going to stage 2
     jmp load_stage_2
 
