@@ -6,9 +6,10 @@ __asm__(".code32\n");
 #include <stdint.h>
 #include <stddef.h>
 #include <stdarg.h>
+#include <stdbool.h>
 
 #define VGA_DRIVER_BUFFER_ADDRESS 0xB8000
-#define VGA_DRIVER_MAGENTA_ON_BLACK 0x05
+#define VGA_DRIVER_MAGENTA_ON_BLACK 0x07
 #define VGA_DRIVER_INITIAL_LINE 13
 #define VGA_DRIVER_WIDTH 80
 #define VGA_DRIVER_HEIGHT 25
@@ -28,10 +29,14 @@ void VGA_DRIVER_clear();
 
 #ifdef VGA_DRIVER_IMPLEMENTATION
 
+#define VGA_DRIVER_DIGITS_ASCII_OFFSET 48
+#define VGA_DRIVER_CONVERT_DIGIT_TO_CHAR(d) (((d) % 10) + VGA_DRIVER_DIGITS_ASCII_OFFSET)
+
 static size_t line = VGA_DRIVER_INITIAL_LINE;
 static size_t offset = 0;
 
 static void print_char(char character, uint8_t color);
+static void print_int(int d);
 static void print_string(const char* string, uint8_t color);
 
 static void print_char(char character, uint8_t color)
@@ -56,6 +61,36 @@ static void print_char(char character, uint8_t color)
         ++offset;
     }
 
+}
+
+static void print_int(int d)
+{
+    bool is_negative = d < 0;
+    char digits[11]; // int max is 10 digits and null terminator is another
+    digits[10] = '\0';
+
+    size_t current_idx = 9;
+    while (d != 0)
+    {
+        int current_digit = d % 10;
+        if (current_digit < 0)
+        {
+            current_digit = - current_digit;
+        }
+        digits[current_idx] = VGA_DRIVER_CONVERT_DIGIT_TO_CHAR(current_digit);
+        --current_idx;
+        d /= 10;
+    }
+
+    if (is_negative)
+    {
+        digits[current_idx] = '-';
+        --current_idx;
+    }
+
+    ++current_idx; // we decrement it one too many times
+    char* final_string = ((char*)digits) + current_idx;
+    print_string(final_string, VGA_DRIVER_MAGENTA_ON_BLACK);
 }
 
 static void print_string(const char* string, uint8_t color)
@@ -83,9 +118,45 @@ void VGA_DRIVER_report(const char* message, VGA_Driver_report_status status)
     print_char('\n', VGA_DRIVER_MAGENTA_ON_BLACK);
 
 }
+
 void VGA_DRIVER_printf(const char* format, ...)
 {
+    va_list ap;
+    va_start(ap, format);
+    char* s;
+    char c;
+    int d;
 
+    while (*format)
+    {
+        char current = *format;
+        if (current == '%')
+        {
+            ++format;
+            current = *format;
+
+            switch (current)
+            {
+                case 's':
+                    s = va_arg(ap, char*);
+                    print_string(s, VGA_DRIVER_MAGENTA_ON_BLACK);
+                    break;
+                case 'c':
+                    c = (char)va_arg(ap, int);
+                    print_char(c, VGA_DRIVER_MAGENTA_ON_BLACK);
+                    break;
+                case 'd':
+                    d = va_arg(ap, int);
+                    print_int(d);
+                    break;
+            }
+        }
+        else
+        {
+            print_char(current, VGA_DRIVER_MAGENTA_ON_BLACK);
+        }
+        ++format;
+    }
 }
 
 #endif /* VGA_DRIVER_IMPLEMENTATION */
