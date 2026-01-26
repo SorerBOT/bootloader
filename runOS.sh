@@ -7,6 +7,7 @@ STAGE_3="bootloader_stage_3"
 PADDING="padding"
 OS_IMG="os-img"
 STAGE_2_ORG="0x7E00"
+OS_IMAGE_SIZE_MAX=33280 # 32KiB + 512
 
 rm -rf $BIN
 mkdir $BIN
@@ -21,6 +22,19 @@ x86_64-elf-ld -m elf_i386 -o "$BIN$STAGE_3.bin" -Ttext $STAGE_2_ORG "$BIN$STAGE_
 dd if=/dev/zero of="$BIN$PADDING.bin" bs=1024 count=32
 
 # now stage 2 and 3 are combined
-cat "$BIN$STAGE_1.bin" "$BIN$STAGE_3.bin" "$BIN$PADDING.bin" > "$BIN$OS_IMG.bin"
+cat "$BIN$STAGE_1.bin" "$BIN$STAGE_3.bin" > "$BIN$OS_IMG.bin"
+
+# checking the file size, should not exceed 512 + 32KiB because this is all we're loading into RAM
+OS_IMAGE_SIZE=$(wc -c < "$BIN$OS_IMG.bin")
+
+echo "OS built successfully..."
+if (( OS_IMAGE_SIZE > OS_IMAGE_SIZE_MAX )); then
+    echo "OS size: $OS_IMAGE_SIZE, exceeds allowed size of 32KiB + 512 bytes. It's time to make the BIOS load more code in stage 1...."
+    exit 1
+else
+    echo "OS size is OK. Running the OS"
+fi
+
+cat "$BIN$PADDING.bin" >> "$BIN$OS_IMG.bin"
 
 qemu-system-x86_64 -drive format=raw,file="$BIN$OS_IMG.bin" -display cocoa
