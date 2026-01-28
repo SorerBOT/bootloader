@@ -126,14 +126,32 @@ void VGA_DRIVER_printf(const char* format, ...)
     char* s;
     char c;
     int d;
+    long d_long;
+    long long d_long_long;
 
     while (*format)
     {
         char current = *format;
+        uint8_t long_count = 0;
+
         if (current == '%')
         {
             ++format;
             current = *format;
+
+            if (current == 'l')
+            {
+                ++long_count;
+                ++format;
+                current = *format;
+                if (current == 'l')
+                {
+                    ++format;
+                    current = *format;
+                    ++long_count;
+                }
+
+            }
 
             switch (current)
             {
@@ -146,9 +164,25 @@ void VGA_DRIVER_printf(const char* format, ...)
                     print_char(c, VGA_DRIVER_MAGENTA_ON_BLACK);
                     break;
                 case 'd':
-                    d = va_arg(ap, int);
-                    print_int(d);
-                    break;
+                    if (long_count == 0)
+                    {
+                        d = va_arg(ap, int);
+                        print_int(d);
+                        break;
+                    }
+                    else if (long_count == 1)
+                    {
+                        d_long = va_arg(ap, long);
+                        print_int(d_long);
+                        break;
+                    }
+                    else if (long_count == 2)
+                    {
+                        d_long_long = va_arg(ap, long long);
+                        print_int(d_long_long);
+                        break;
+                    }
+
             }
         }
         else
