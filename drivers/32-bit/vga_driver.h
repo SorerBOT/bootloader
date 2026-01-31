@@ -3,17 +3,6 @@ __asm__(".code32\n");
 #ifndef VGA_DRIVER_H
 #define VGA_DRIVER_H
 
-#include <stdint.h>
-#include <stddef.h>
-#include <stdarg.h>
-#include <stdbool.h>
-
-#define VGA_DRIVER_BUFFER_ADDRESS 0xB8000
-#define VGA_DRIVER_MAGENTA_ON_BLACK 0x07
-#define VGA_DRIVER_INITIAL_LINE 13
-#define VGA_DRIVER_WIDTH 80
-#define VGA_DRIVER_HEIGHT 25
-
 typedef enum
 {
     VGA_DRIVER_SUCCESS,
@@ -29,6 +18,16 @@ void VGA_DRIVER_clear();
 
 #ifdef VGA_DRIVER_IMPLEMENTATION
 
+#include <stdint.h>
+#include <stddef.h>
+#include <stdarg.h>
+#include <stdbool.h>
+
+#define VGA_DRIVER_BUFFER_ADDRESS 0xB8000
+#define VGA_DRIVER_MAGENTA_ON_BLACK 0x07
+#define VGA_DRIVER_INITIAL_LINE 13
+#define VGA_DRIVER_WIDTH 80
+#define VGA_DRIVER_HEIGHT 25
 #define VGA_DRIVER_DIGITS_ASCII_OFFSET 48
 #define VGA_DRIVER_CONVERT_DIGIT_TO_CHAR(d) (((d) % 10) + VGA_DRIVER_DIGITS_ASCII_OFFSET)
 
